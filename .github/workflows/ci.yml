@@ -1,0 +1,195 @@
+{
+  "name" : "Continuous Integration",
+  "on" : {
+    "push" : {
+      "paths" : [
+        "**.yml",
+        "**.sh",
+        "**.tjs",
+        "**.ks",
+        "**.ksc",
+        "**.dic",
+        "**.arr",
+        "**.png",
+        "**.webp",
+        "**.tlg",
+        "**.ogg",
+        "**.opus"
+      ]
+    },
+    "pull_request" : {
+      "paths" : [
+        "**.yml",
+        "**.sh",
+        "**.tjs",
+        "**.ks",
+        "**.ksc",
+        "**.dic",
+        "**.arr",
+        "**.png",
+        "**.webp",
+        "**.tlg",
+        "**.ogg",
+        "**.opus"
+      ]
+    }
+  },
+  "jobs" : {
+    "build-xp3" : {
+      "runs-on" : "ubuntu-20.04",
+      "timeout-minutes" : 20,
+      "steps" : [
+        {
+          "name" : "Checkout the repository",
+          "uses" : "actions/checkout@v2",
+          "with" : {
+            "submodules" : "recursive"
+          }
+        },
+        {
+          "name" : "Update apt repository",
+          "run" : "sudo apt-get update"
+        },
+        {
+          "name" : "Install p7zip",
+          "run" : "sudo apt-get install -y p7zip"
+        },
+        {
+          "name" : "Download krkrrel",
+          "run" : "curl -LOC - https://github.com/krkrsdl2/krkrrel-ng/releases/download/latest/krkrrel-ubuntu.zip"
+        },
+        {
+          "name" : "Extract krkrrel",
+          "run" : "7z x -okrkrrel-tmp krkrrel-ubuntu.zip"
+        },
+        {
+          "name" : "Append krkrrel to path",
+          "run" : "echo \"$(realpath krkrrel-tmp)/krkrrel-ubuntu\" >> $GITHUB_PATH"
+        },
+        {
+          "name" : "Change permissions for krkrrel",
+          "run" : "chmod +x krkrrel-tmp/krkrrel-ubuntu/krkrrel"
+        },
+        {
+          "name" : "Do build",
+          "run" : "bash build.sh"
+        },
+        {
+          "uses" : "actions/upload-artifact@master",
+          "with" : {
+            "name" : "fsnrnue-bootstrap-xp3",
+            "path" : "data.xp3"
+          }
+        }
+      ]
+    },
+    "build-vita" : {
+      "needs" : ["build-xp3"],
+      "runs-on" : "ubuntu-20.04",
+      "timeout-minutes" : 25,
+      "container" : {
+        "image" : "vitasdk/vitasdk:latest"
+      },
+      "steps" : [
+        {
+          "name" : "Install dependencies",
+          "run" : "apk update\napk add cmake make ninja git curl\n"
+        },
+        {
+          "uses" : "actions/checkout@v2",
+          "with" : {
+            "submodules" : "recursive"
+          }
+        },
+        {
+          "name" : "Download xp3 artifact",
+          "uses" : "actions/download-artifact@v1",
+          "with" : {
+            "name" : "fsnrnue-bootstrap-xp3"
+          }
+        },
+        {
+          "name" : "Clone the Kirikiri SDL2 repository",
+          "run" : "git clone --no-checkout https://github.com/krkrsdl2/krkrsdl2.git krkrsdl2-repo"
+        },
+        {
+          "name" : "Checkout a specific commit in the Kirikiri SDL2 repository",
+          "run" : "git -C krkrsdl2-repo checkout e411eee0d8b6b36d7106167520b9135133bae6a3"
+        },
+        {
+          "name" : "Checkout the submodules in the Kirikiri SDL2 repository",
+          "run" : "git -C krkrsdl2-repo submodule update --init --recursive"
+        },
+        {
+          "name" : "Configure Kirikiri SDL2",
+          "run" : "cmake -S krkrsdl2-repo -B build-krkrsdl2 -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DEMBED_DATA_PATH=$(realpath fsnrnue-bootstrap-xp3/data.xp3) -DVITA_RESOURCES_ROOT=$(realpath vita-resources) -DVITA_APP_NAME='Fate/Stay Night [Realta Nua] - Ultimate Edition' -DVITA_TITLEID=FATE00001 -DVITA_VERSION=01.01"
+        },
+        {
+          "name" : "Build Kirikiri SDL2",
+          "run" : "cmake --build build-krkrsdl2"
+        },
+        {
+          "name" : "Copy vpk file",
+          "run" : "cp build-krkrsdl2/krkrsdl2.vpk fsnrnue.vpk"
+        },
+        {
+          "name" : "Copy elf file",
+          "run" : "cp build-krkrsdl2/krkrsdl2 fsnrnue.elf"
+        },
+        {
+          "name" : "Upload vpk artifact",
+          "uses" : "actions/upload-artifact@master",
+          "with" : {
+            "name" : "fsnrnue-multiplatform-vita",
+            "path" : "fsnrnue.vpk"
+          }
+        },
+        {
+          "name" : "Upload elf artifact",
+          "uses" : "actions/upload-artifact@master",
+          "with" : {
+            "name" : "fsnrnue-multiplatform-vita-elf",
+            "path" : "fsnrnue.elf"
+          }
+        }
+      ]
+    },
+    "create-release" : {
+      "needs" : ["build-vita"],
+      "runs-on" : "ubuntu-20.04",
+      "timeout-minutes" : 20,
+      "if" : "github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')",
+      "steps" : [
+        {
+          "name" : "Download vita artifact",
+          "uses" : "actions/download-artifact@v1",
+          "with" : {
+            "name" : "fsnrnue-multiplatform-vita"
+          }
+        },
+        {
+          "name" : "Create prerelease",
+          "if" : "github.ref == 'refs/heads/main'",
+          "uses" : "marvinpinto/action-automatic-releases@latest",
+          "with" : {
+            "repo_token" : "${{ secrets.GITHUB_TOKEN }}",
+            "prerelease" : "true",
+            "automatic_release_tag" : "latest",
+            "title" : "Latest development builds",
+            "files" : "fsnrnue-multiplatform-vita/*"
+          }
+        },
+        {
+          "name" : "Create release",
+          "if" : "startsWith(github.ref, 'refs/tags/v')",
+          "uses" : "marvinpinto/action-automatic-releases@latest",
+          "with" : {
+            "repo_token" : "${{ secrets.GITHUB_TOKEN }}",
+            "prerelease" : "${{ contains(github.ref, '-rc') }}",
+            "files" : "fsnrnue-multiplatform-vita/*"
+          }
+        }
+      ]
+    }
+  }
+}

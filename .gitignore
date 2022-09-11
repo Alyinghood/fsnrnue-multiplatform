@@ -1,0 +1,10 @@
+.DS_Store
+*.a
+*.7z
+build-*
+build_*
+build
+krkrrel-ubuntu.zip
+krkrrel-tmp
+data.xp3
+data-tmp

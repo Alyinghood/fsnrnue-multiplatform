@@ -1,0 +1,14 @@
+﻿{
+	var base_path = "file://?/ux0:/fsnrnue/";
+	var archive_path = base_path + "patch.xp3";
+	if (Storages.isExistentStorage(archive_path))
+	{
+		System.setArgument("-basepath", base_path);
+		Scripts.execStorage(archive_path + ">startup.tjs");
+	}
+	else
+	{
+		System.inform("Could not find patch files!\nPress OK for more details on the patch.");
+		System.shellExecute("https://hollow-moon.github.io/fate/vita/");
+	}
+}
