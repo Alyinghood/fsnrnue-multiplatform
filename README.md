@@ -1,7 +1,7 @@
 
 # Fate/stay night [Realta Nua] Multi-platform Port
 
-Hello! If you are looking to **download** this port, please see the following webpage:  
+Hello! If you are looking to **download** this port, please see the following webpage: https://alyinghood.github.io/fsnrnue-multiplatform/  
 
 ## License
 
