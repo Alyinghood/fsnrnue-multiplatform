@@ -22,8 +22,8 @@ If you get redirected to this page when running the Vita version, you have made 
 
 ### Installation
 
-1. Prepare the install on a PC using the installer from the first page, or a [pre-patched version](https://forums.nrvnqsr.com/showthread.php/8229?p=3066122&viewfull=1#post3066122).
-2. Replace the .xp3 files with the ones in [this link](https://forums.nrvnqsr.com/showthread.php/8229?p=3107585&viewfull=1#post3107585) inside the "Patches" folder.
+1. Download a [pre-patched version](https://nyaa.si/view/1691072).
+2. This step is intentionally omitted. Continue to the next step.
 3. Ensure the game works on PC by running "Fate.exe". If that doesn't work, it won't work on Vita either.
 4. Create the folder "ux0:/fsnrnue/" if it does not already exist, then copy the game files **using the "USB" mode of VitaShell** so it looks like the following directory tree (do not add any additional files):
 > ```
