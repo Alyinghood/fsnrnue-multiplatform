@@ -52,7 +52,7 @@ If you get redirected to this page when running the Vita version, you have made 
 
 #### How to save
 
-To save, you can go into the menu by pressing the Circle then pressing "Save".
+To save, you can go into the menu by pressing the Circle button then pressing "Save".
 
 #### How to transfer save from PC
 
